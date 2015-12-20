@@ -26,23 +26,23 @@ hash bsdtar 2>/dev/null || error "Please install bsdtar"
 
 # Run fdisk
 echo "Running fdisk on $TARGET"...
-sed -e 's/\t\([\+0-9a-zA-Z]*\)[ \t].*/\1/' << EOF | fdisk $TARGET
-  o     #clear partition table
-  n     #new partition
-  p     #primary partition
-  1     #partition 1
-        #start at beginning of disk
-  +100M #100 MiB boot parttion
-  t     #change type
-  c     #W95 FAT32 (LBA)
-  n     #new partition
-  p     #primary partition
-  2     #partition number 2
-        #accept starting sector
-        #accept ending sector
-  p     #print partition table
-  w     #write partition table
-  q     #quit
+sed -e 's/\([\+0-9a-zA-Z]*\)[ ].*/\1/' << EOF | fdisk $TARGET
+o     #clear partition table
+n     #new partition
+p     #primary partition
+1     #partition 1
+      #start at beginning of disk
++100M #100 MiB boot parttion
+t     #change type
+c     #W95 FAT32 (LBA)
+n     #new partition
+p     #primary partition
+2     #partition number 2
+      #accept starting sector
+      #accept ending sector
+p     #print partition table
+w     #write partition table
+q     #quit
 EOF
 echo "Done."
 echo
