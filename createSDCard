@@ -1,0 +1,85 @@
+#!/bin/bash
+
+PROG=$(basename $0)
+
+error() {
+    echo -e "ERROR: $*" >&2
+    exit 1
+}
+
+usage() {
+    echo "USAGE: $PROG TARGET_DEV [PATH_TO_TAR.GZ]"
+}
+
+if [[ $# -eq 2 ]]; then
+    TARGET="$1"
+    TARBALL_PATH="$2"
+else
+    TARGET="$1"
+    TARBALL_PATH=""
+fi
+
+# Ensure the target device's syntax is correct
+[[ "$TARGET" =~ ^/dev/sd[a-z]$ ]] || error "Invalid target: $TARGET"
+# Ensure bsdtar is installed
+hash bsdtar 2>/dev/null || error "Please install bsdtar"
+
+# Run fdisk
+echo "Running fdisk on $TARGET"...
+sed -e 's/\t\([\+0-9a-zA-Z]*\)[ \t].*/\1/' << EOF | fdisk $TARGET
+  o     #clear partition table
+  n     #new partition
+  p     #primary partition
+  1     #partition 1
+        #start at beginning of disk
+  +100M #100 MiB boot parttion
+  t     #change type
+  c     #W95 FAT32 (LBA)
+  n     #new partition
+  p     #primary partition
+  2     #partition number 2
+        #accept starting sector
+        #accept ending sector
+  p     #print partition table
+  w     #write partition table
+  q     #quit
+EOF
+echo "Done."
+echo
+
+# Create FAT filestystem for /boot
+echo "Making FAT filesystem"
+mkfs.vfat "$TARGET"1
+mkdir boot
+mount "$TARGET"1 boot
+echo "Done."
+echo
+
+# Create ext4 filestystem for /root
+echo "Making ext4 filesystem"
+mkfs.ext4 "$TARGET"2
+mkdir root
+mount "$TARGET"2 root
+echo "Done."
+echo
+
+# Download/locate and un-tar tarball
+echo "Finding tarball"
+if [[ -z $TARBALL_PATH ]]; then
+    echo "Downloading tarball"
+    wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz
+    echo "Extracting tarball"
+    bsdtar -xpf ArchLinuxARM-rpi-2-latest.tar.gz -C root
+else
+    echo "Extracting tarball"
+    bsdtar -xpf $TARBALL_PATH -C root
+fi
+echo "Done.  Syncing..."
+sync
+
+# Move files in /root/boot to /boot
+echo "Done.  Moving files to boot..."
+mv root/boot/* boot
+echo "Done.  Unmounting..."
+umount boot root
+echo "Done."
