@@ -23,6 +23,8 @@ fi
 [[ "$TARGET" =~ ^/dev/sd[a-z]$ ]] || error "Invalid target: $TARGET"
 # Ensure bsdtar is installed
 hash bsdtar 2>/dev/null || error "Please install bsdtar"
+# Ensure script is being run as root
+[[ $EUID -eq 0 ]] || error "This script must be run as root"
 
 # Run fdisk
 echo "Running fdisk on $TARGET"...
