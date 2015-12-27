@@ -8,17 +8,12 @@ error() {
 }
 
 usage() {
-    echo "USAGE: $PROG TARGET_DEV 1|2 [PATH_TO_TAR.GZ]"
+    echo "USAGE: $PROG TARGET_DEV 1|2|PATH_TO_TAR.GZ"
 }
 
-if [[ $# -eq 3 ]]; then
+if [[ $# -eq 2 ]]; then
     TARGET="$1"
-    VERSION="$2"
-    TARBALL_PATH="$3"
-else if [[ $# -eq 2 ]]; then
-    TARGET="$1"
-    VERSION="$2"
-    TARBALL_PATH=""
+    TARBALL_PATH="$2"
 else
     usage && error "Incorrect number of arguments"
 fi
@@ -71,20 +66,20 @@ echo
 
 # Download/locate and un-tar tarball
 echo "Finding tarball"
-if [[ -z $TARBALL_PATH ]]; then
+if [[ $TARBALL_PATH -eq 1 ]]; then
     echo "Downloading tarball"
-    if [[ $VERSION -eq 1 ]]; then
-        wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz
-    else if [[ $VERSION -eq 2 ]]; then
-        wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz
-    else
-        usage && error "Version must be 1 or 2"
-    fi
+    wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz
+    echo "Extracting tarball"
+    bsdtar -xpf ArchLinuxARM-rpi-latest.tar.gz -C root
+else if [[ $TARBALL_PATH -eq 2 ]]; then
+    wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz
     echo "Extracting tarball"
     bsdtar -xpf ArchLinuxARM-rpi-2-latest.tar.gz -C root
-else
+else if [[ -a $TARBALL_PATH ]]; then
     echo "Extracting tarball"
     bsdtar -xpf $TARBALL_PATH -C root
+else
+    error "Second argument must be 1, 2, or a valid path to the tarball"
 fi
 echo "Done.  Syncing..."
 sync
