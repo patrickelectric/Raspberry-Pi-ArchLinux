@@ -78,7 +78,10 @@ echo
 
 # Download/locate and un-tar tarball
 echo "Finding tarball"
-if [[ $TARBALL_PATH -eq 1 ]]; then
+if [[ -a $TARBALL_PATH ]]; then
+    echo "Extracting tarball"
+    bsdtar -xpf $TARBALL_PATH -C root
+elif [[ $TARBALL_PATH -eq 1 ]]; then
     echo "Downloading tarball"
     wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz
     echo "Extracting tarball"
@@ -87,9 +90,6 @@ elif [[ $TARBALL_PATH -eq 2 ]]; then
     wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-2-latest.tar.gz
     echo "Extracting tarball"
     bsdtar -xpf ArchLinuxARM-rpi-2-latest.tar.gz -C root
-elif [[ -a $TARBALL_PATH ]]; then
-    echo "Extracting tarball"
-   bsdtar -xpf $TARBALL_PATH -C root
 else
     echo $TARBALL_PATH
     error "Second argument must be 1, 2, or a valid path to the tarball"
