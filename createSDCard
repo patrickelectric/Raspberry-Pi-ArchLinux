@@ -1,4 +1,21 @@
 #!/bin/bash
+#
+# createSDCard: a wrapper script to install Arch on a SD card to be used in a
+#               Raspberry Pi
+# Author:       Nicholas Fong
+#               https://github.com/nickfong/Raspberry-Pi-Archlinux
+# Usage:        createSDCard TARGET_DEV 1|2|PATH_TO.TAR.GZ
+#
+# Update History
+# YYYY-MM-DD INITIALS  - DESCRIPTION
+# *****************************************************************************
+# 2015-12-19 NF        - Create script
+# 2015-12-20 NF        - Fix fdisk command to work with spaces
+# 2015-12-25 NF        - Check script is run as root, support RPi 1
+# 2015-12-27 NF        - Fix argument handling
+# 2015-12-30 NF        - Set -euo pipefail
+# 2016-01-03 NF        - Add spaces in input director block
+# 2016-01-05 NF        - Add header to script
 set -euo pipefail
 PROG=$(basename $0)
 
@@ -8,7 +25,7 @@ error() {
 }
 
 usage() {
-    echo "USAGE: $PROG TARGET_DEV 1|2|PATH_TO_TAR.GZ"
+    echo "USAGE: $PROG TARGET_DEV 1|2|PATH_TO.TAR.GZ"
 }
 
 if [[ $# -eq 2 ]]; then
