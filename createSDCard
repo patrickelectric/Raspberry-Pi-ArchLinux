@@ -3,6 +3,7 @@
 # createSDCard: a wrapper script to install Arch on a SD card to be used in a
 #               Raspberry Pi
 # Author:       Nicholas Fong
+#               Patrick José Pereira
 #               https://github.com/nickfong/Raspberry-Pi-Archlinux
 # Usage:        createSDCard TARGET_DEV 1|2|PATH_TO.TAR.GZ
 #
@@ -16,6 +17,7 @@
 # 2015-12-30 NF        - Set -euo pipefail
 # 2016-01-03 NF        - Add spaces in input director block
 # 2016-01-05 NF        - Add header to script
+# 2017-03-02 PJP       - Add mmc card support
 set -euo pipefail
 PROG=$(basename $0)
 
@@ -35,8 +37,15 @@ else
     usage && error "Incorrect number of arguments"
 fi
 
-# Ensure the target device's syntax is correct
-[[ "$TARGET" =~ ^/dev/sd[a-z]$ ]] || error "Invalid target: $TARGET"
+# Ensure the target is a sdcard or device
+if [[ "$TARGET" =~ ^/dev/sd[a-z]$ ]]; then
+    part=""
+elif [[ "$TARGET" =~ ^/dev/mmcblk[0-9]$ ]]; then
+    part="p"
+else
+    error "Invalid target: $TARGET"
+fi
+
 # Ensure bsdtar is installed
 hash bsdtar 2>/dev/null || error "Please install bsdtar"
 # Ensure script is being run as root
@@ -79,17 +88,17 @@ echo
 
 # Create FAT filestystem for /boot
 echo "Making FAT filesystem"
-mkfs.vfat "$TARGET"1
+mkfs.vfat "$TARGET"${part}1
 mkdir boot
-mount "$TARGET"1 boot
+mount "$TARGET"${part}1 boot
 echo "Done."
 echo
 
 # Create ext4 filestystem for /root
 echo "Making ext4 filesystem"
-mkfs.ext4 "$TARGET"2
+mkfs.ext4 "$TARGET"${part}2
 mkdir root
-mount "$TARGET"2 root
+mount "$TARGET"${part}2 root
 echo "Done."
 echo
 
